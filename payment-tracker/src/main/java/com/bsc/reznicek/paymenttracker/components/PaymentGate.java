@@ -37,13 +37,19 @@ public class PaymentGate implements CommandLineRunner {
 	 *            paths relative to the jar file
 	 * @throws IOException
 	 */
-	private void registerExistingPayments(String[] externalFilePaths) throws IOException {
+	private void registerExistingPayments(String[] externalFilePaths) {
 		for (String externalFilePath : externalFilePaths) {
-			Stream<String> existingPayments = Files.lines(Paths.get(externalFilePath));
-			existingPayments.forEach(payment -> {
-				paymentTracker.newPayment(payment);
-			});
-			existingPayments.close();
+			Stream<String> existingPayments = Stream.empty();
+			try {
+				existingPayments = Files.lines(Paths.get(externalFilePath));
+				existingPayments.forEach(payment -> {
+					paymentTracker.newPayment(payment);
+				});
+			} catch (IOException e) {
+				System.out.println("File " + externalFilePath + " couldn't be processed");
+			} finally {
+				existingPayments.close();
+			}
 		}
 		paymentTracker.overview();
 	}
